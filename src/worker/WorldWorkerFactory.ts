@@ -8,10 +8,10 @@ const simdSupported = await simd();
 let wasmURL: URL;
 if (simdSupported) {
     console.debug("SIMD is supported");
-    wasmURL = new URL("./wasm/simd/burn_polecart_wasm_bg.wasm", import.meta.url);
+    wasmURL = new URL("../wasm/simd/burn_polecart_wasm_bg.wasm", import.meta.url);
 } else {
     console.debug("SIMD is not supported");
-    wasmURL = new URL("./wasm/no-simd/burn_polecart_wasm_bg.wasm", import.meta.url);
+    wasmURL = new URL("../wasm/no-simd/burn_polecart_wasm_bg.wasm", import.meta.url);
 }
 
 console.log("WASM Url to request " + wasmURL);

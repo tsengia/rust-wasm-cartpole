@@ -36,3 +36,6 @@ body {
 #controls-panel {
     line-height: 2em;
 }
+canvas { 
+    border: 1px solid black;
+}

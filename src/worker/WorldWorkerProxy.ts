@@ -1,5 +1,5 @@
 import * as Comlink from 'comlink';
-import WorkerInterface, { EpisodeBatchData } from './WorkerInterface';
+import WorkerInterface, { EpisodeData } from './WorkerInterface';
 
 export class WorldWorkerProxy {
   _worker: Worker;
@@ -12,7 +12,7 @@ export class WorldWorkerProxy {
     this._comlink = remote;
   }
 
-  async random_rollout(): Promise<EpisodeBatchData[] | null> {
+  async random_rollout(): Promise<EpisodeData[] | null> {
     if (this._comlink == null) {
       console.error("Called random_rollout() before init() has finished!");
       return null;

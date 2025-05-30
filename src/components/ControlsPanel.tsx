@@ -6,7 +6,7 @@ import useCartpoleAppState, { AppActions, AppState } from '../AppState';
 function ControlsPanel() {
   const isPaused: boolean = useCartpoleAppState((state: AppState) => state.isPaused);
   const isTraining: boolean = useCartpoleAppState((state: AppState) => state.isTraining);
-  const workerCount: number = useCartpoleAppState((state: AppState) => state.workerCount);
+  const workerCount: number = useCartpoleAppState((state: AppState) => state.webWorkers.length);
   const discountFactor: number = useCartpoleAppState((state: AppState) => state.discountFactor);
   const learningRate: number = useCartpoleAppState((state: AppState) => state.learningRate);
 

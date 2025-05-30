@@ -1,7 +1,7 @@
 import { Flex, Skeleton, Text, TextField } from "@radix-ui/themes";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import useCartpoleAppState from '../AppState';
-import { EpisodeBatchData } from "../worker/WorkerInterface";
+import { EpisodeData } from "../worker/WorkerInterface";
 
 export const CART_WIDTH = 50;
 export const CART_HEIGHT = 30;
@@ -12,19 +12,17 @@ function EpisodeReplay() {
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const context = useRef<CanvasRenderingContext2D | null>(null);
-    //const episodeIdRef = useRef<number | null>(null);
     const animationInterval = useRef<number>(null);
+    const autoPlayStarted = useRef<boolean>(false);
     
+    const [endOfReplay, setEndOfReplay] = useState(false);
     const [paused, setPaused] = useState(false);
     const [frame, setFrame] = useState(0);
-   
-    const episodes: EpisodeBatchData[] = useCartpoleAppState((state)=> state.episodes);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [episodeID, _] = useState<number>(0); // setEpisodeID
 
-    const episode = useMemo<EpisodeBatchData | null>(
-        ()=>{
-            //console.log(episodeBatch);
+    const episodes: EpisodeData[] = useCartpoleAppState((state)=> state.episodes);
+    const [episodeID, setEpisodeID] = useState<number>(0);
+
+    const episode = useMemo<EpisodeData | null>(()=>{
             if (episodeID == null || episodes.length == 0) {
                 return null;
             }
@@ -32,24 +30,15 @@ function EpisodeReplay() {
             if (episodeID < 0 || episodeID >= episodes.length) {
                 return null;
             }
-
             return episodes[episodeID];
-        },
-        [episodeID, episodes]);
-
-    if (context.current == null) {
-        const canvas_obj = canvasRef.current;
-        if (canvas_obj !== null) {
-            context.current = canvas_obj.getContext("2d");
-        }
-    }
+        }, [episodeID, episodes]);
     
     const stopReplay = useCallback(() => {
         if (animationInterval.current !== null) {
             clearInterval(animationInterval.current);
             animationInterval.current = null;
         }
-    },[animationInterval]);
+    }, [animationInterval]);
 
     const animationCallback = useCallback(() => {
         if (episode == null) {
@@ -59,70 +48,67 @@ function EpisodeReplay() {
         setFrame(f => {
             if (f + 1 >= episode.total_steps) {
                 // Reached the end of the replay
+                console.log("Reached end of the replay!");
                 stopReplay();
+                setEndOfReplay(true);
             }
             return f+1;
         });
     }, [episode, stopReplay]);
 
     const startReplay = useCallback(() => {
+        console.log("Called startReplay!");
         animationInterval.current = window.setInterval(animationCallback, 15);
+        setEndOfReplay(false);
     }, [animationCallback]);
 
     const restartReplay = useCallback(() => {
         stopReplay();
-        startReplay();
         setFrame(0);
+        startReplay();
     },[startReplay, stopReplay]);
 
     const handleClick = useCallback(() => {
-        if (!paused) {
+        if (endOfReplay) {
+            console.log("Restarting replay!");
             restartReplay();
-            setPaused(false);
         }
-        else if (animationInterval.current === null) {
+        else if (paused) {
+            console.log("Resuming replay!");
             startReplay();
             setPaused(false);
         }
         else {
+            console.log("Pausing replay!");
             stopReplay();
             setPaused(true);
         }
-    }, [paused, startReplay, restartReplay, stopReplay]);
-
-    /*
-        TODO: The rendering loop should not be state updates.
-        The rendering loop should be outside of react's control.
-    */
-
-    /* if (episode != null) {
-        endOfReplay = frame + 1 >= episode.cart_positions.length;
-    }
-    else {
-        endOfReplay = false;
-    }
+    }, [paused, endOfReplay, startReplay, restartReplay, stopReplay]);
     
-    useEffect(() => {
-        if (episodeIdRef.current === null) {
-            episodeIdRef.current = episode_id;
-            startReplay();
-        }
-        else if (episodeIdRef.current != episode_id) {
-            episodeIdRef.current = episode_id;
-            restartReplay();
-        }
-        
-    }, [episode, episode_id, restartReplay, startReplay]);
-    */
-    
+    if (!autoPlayStarted.current && !endOfReplay && !paused && episode != null && animationInterval.current == null) {
+        // Just got new episodes, start auto-playing
+        autoPlayStarted.current = true;
+        startReplay();
+    }
+
     useEffect(()=> {
-        if (episode == null || episodes.length == 0) {
+        if (episode == null) {
             return;
+        }
+        if (context.current == null) {
+            const canvas_obj = canvasRef.current;
+            if (canvas_obj !== null) {
+                context.current = canvas_obj.getContext("2d");
+                console.log("Set 2D context");
+            }
         }
 
         if (context === null || context.current === null) {
+            console.error("effect context is null!");
             return;
         }
+
+
         const ctx = context.current;
         const f = frame;
         const cart_x = episode.cart_positions[f] + (CANVAS_WIDTH/2);
@@ -132,12 +118,12 @@ function EpisodeReplay() {
 
         // Clear the canvas
         ctx.fillStyle = "#FFF";
-        ctx.fillRect(0,0,CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.fillRect(0,0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         // Draw the ID numbers
         ctx.fillStyle = "#000";
         ctx.font = "30px sans-serif";
-        ctx.fillText("Frame: " + f + "/" + episode.total_steps, 5, 75);
+        ctx.fillText("Frame: " + f + "/" + episode.total_steps, 5, 30);
 
         // Draw the pole
         ctx.strokeStyle = "#000";
@@ -152,7 +138,7 @@ function EpisodeReplay() {
         ctx.fillStyle = "#F00";
         ctx.fillRect(cart_x, cart_y, CART_WIDTH, CART_HEIGHT);
 
-        if (paused) {
+        if (paused || endOfReplay) {
             ctx.globalAlpha = 0.5;
             ctx.fillStyle = "#999";
             ctx.fillRect(0,0,CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -161,15 +147,15 @@ function EpisodeReplay() {
             ctx.fillStyle = "#000";
             ctx.lineWidth = 1;
             let msg: string = "";
-            // if (endOfReplay) {
-            //     msg = "End of Replay. Click to play again."
-            // }
-            if (paused) {
+            if (endOfReplay) {
+                msg = "End of Replay. Click to play again."
+            }
+            else if (paused) {
                 msg = "Replay Paused. Click to resume.";
             }
             ctx.fillText(msg, CANVAS_WIDTH/2 - 200, CANVAS_HEIGHT/2);
         }
-    },[paused, frame, episode]);
+    }, [paused, frame, episode, endOfReplay, startReplay]);
 
     return (
         <Flex direction='column' gap='4' >
@@ -178,11 +164,11 @@ function EpisodeReplay() {
                 Epoch: 0
             </Text>
             <Text as="label" >
-                Episode: <TextField.Root style={{display:'inline-block'}} defaultValue="1" placeholder="Value between 0 and 127" />
+                Episode: <TextField.Root style={{display:'inline-block'}} defaultValue={episodeID} onChange={(e)=>{if (!Number.isNaN(parseInt(e.target.value))) { const i = parseInt(e.target.value); if (i<episodes.length) {setEpisodeID(i); restartReplay();}} }} /> / {episodes.length}
             </Text>
 
             </Flex>
-            <Skeleton loading={episodes.length == 0} height={CANVAS_HEIGHT + "px"} width={CANVAS_WIDTH + "px"} >
+            <Skeleton loading={episode == null} height={CANVAS_HEIGHT + "px"} width={CANVAS_WIDTH + "px"} >
                 <canvas ref={canvasRef} height={CANVAS_HEIGHT + "px"} width={CANVAS_WIDTH + "px"} onClick={handleClick}></canvas>
             </Skeleton>
         </Flex>        
