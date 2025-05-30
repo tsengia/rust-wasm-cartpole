@@ -1,0 +1,3 @@
+# Required to tell cargo to compile the std library since we are using SharedMemory as the backing store
+[unstable]
+build-std = ['std', 'panic_abort']

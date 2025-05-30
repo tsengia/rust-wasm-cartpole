@@ -1,0 +1,26 @@
+/.yarn/**            linguist-vendored
+/.yarn/releases/*    binary
+/.yarn/plugins/**/*  binary
+/.pnp.*              binary linguist-generated
+
+* text=auto
+
+# Text formats
+*.rs text
+*.js text
+*.ts text
+*.mjs text
+*.cjs text
+*.json text
+*.yaml text
+*.yml text
+*.toml text
+*.lock text
+*.md text
+
+# Binary formats
+*.png binary
+*.jpg binary
+*.gz binary
+*.tar binary
+*.
