@@ -48,7 +48,7 @@ function constructWorldListener(ev: MessageEvent) {
     }
     
     const world = new WorkerInterface();
-    console.debug("Constructed new RemoteCartPoleWorld");
+    console.debug("Constructed new WorkerInterface");
     
     Comlink.expose(world);
     globalThis.removeEventListener("message", constructWorldListener);

@@ -1,8 +1,8 @@
 import * as Comlink from 'comlink';
 import { simd } from "wasm-feature-detect";
 
-import * as wasm from "../wasm/no-simd/burn_polecart_wasm";
-import CartPoleWorldProxy from './WasmWorkerProxy';
+import WorldWorkerProxy from './WorldWorkerProxy';
+import WorkerInterface from './WorkerInterface';
 
 const simdSupported = await simd();
 let wasmURL: URL;
@@ -31,13 +31,13 @@ fetch(wasmURL).then((response: Response) => {
   console.error(error);
 });
 
-export class CartPoleWorldWorkerFactory {
+export class WorldWorkerFactory {
   _worker: Worker | null;
-  _comlink: Comlink.Remote<wasm.CartPoleWorld> | null;
+  _comlink: Comlink.Remote<WorkerInterface> | null;
   _memory: WebAssembly.Memory | null;
 
   // These are the resolve and reject functions for the Promise that is returned by init()
-  _initPromiseResolve: ((result: CartPoleWorldProxy) => void ) | null;
+  _initPromiseResolve: ((result: WorldWorkerProxy) => void ) | null;
   _initPromiseReject: ((reason: string) => void ) | null;
 
   constructor() {
@@ -107,10 +107,10 @@ export class CartPoleWorldWorkerFactory {
       console.error(ev);
       return;
     }
-    this._initPromiseResolve(new CartPoleWorldProxy(this._worker, this._memory, this._comlink));
+    this._initPromiseResolve(new WorldWorkerProxy(this._worker, this._memory, this._comlink));
   }
 
-  init(): Promise<CartPoleWorldProxy> {
+  init(): Promise<WorldWorkerProxy> {
     console.log("Attempting to spawn a new worker!");
     // NOTE: Switch type: back to "classic" when building for real
     this._worker = new Worker(
@@ -120,7 +120,7 @@ export class CartPoleWorldWorkerFactory {
     this._worker.addEventListener("message", this._initFinishedCallback);
     this._worker.postMessage({"module": wasmModule, "loading_status":"INIT_MODULE"});
 
-    const promise = new Promise<CartPoleWorldProxy>((resolve, reject) => {
+    const promise = new Promise<WorldWorkerProxy>((resolve, reject) => {
       this._initPromiseResolve = resolve;
       this._initPromiseReject = reject;
     });
@@ -128,5 +128,5 @@ export class CartPoleWorldWorkerFactory {
   }
 }
 
-export default CartPoleWorldWorkerFactory;
+export default WorldWorkerFactory;
 

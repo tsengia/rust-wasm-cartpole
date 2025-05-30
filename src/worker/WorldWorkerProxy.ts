@@ -1,8 +1,7 @@
 import * as Comlink from 'comlink';
+import WorkerInterface, { EpisodeBatchData } from './WorkerInterface';
 
-import WorkerInterface, { JSEpisodeRecording } from './WorkerInterface';
-
-export class CartPoleWorldProxy {
+export class WorldWorkerProxy {
   _worker: Worker;
   _comlink: Comlink.Remote<WorkerInterface>;
   _memory: WebAssembly.Memory;
@@ -13,21 +12,14 @@ export class CartPoleWorldProxy {
     this._comlink = remote;
   }
 
-  async random_rollout() {
-    if (this._comlink == null || this._memory == null) {
+  async random_rollout(): Promise<EpisodeBatchData[] | null> {
+    if (this._comlink == null) {
       console.error("Called random_rollout() before init() has finished!");
-      return;
+      return null;
     }
 
     await this._comlink.random_rollout();
-  }
-
-  async get_episode(episode_id: number): Promise<JSEpisodeRecording> {
-    const r = await this._comlink.get_episode(episode_id);
-    if (r == null) {
-      throw "Got null when getting episode id " + episode_id;
-    }
-    return r;
+    return await this._comlink.get_batch();
   }
 
   terminate() {
@@ -37,5 +29,5 @@ export class CartPoleWorldProxy {
   }
 }
 
-export default CartPoleWorldProxy;
+export default WorldWorkerProxy;
 

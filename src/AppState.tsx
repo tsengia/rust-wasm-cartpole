@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
-import { CartPoleWorldProxy } from './worker/WasmWorkerProxy';
-import CartPoleWorldWorkerFactory from './worker/WorkerFactory';
-import { BatchedEpisodeRecord } from './wasm/no-simd/burn_polecart_wasm';
+import { WorldWorkerProxy } from './worker/WorldWorkerProxy';
+import WorldWorkerFactory from './worker/WorldWorkerFactory';
+import { EpisodeBatchData } from './worker/WorkerInterface';
 
 type AppState = {
     isTraining: boolean,
@@ -12,8 +12,8 @@ type AppState = {
     discountFactor: number,
     epoch: number,
     lossHistory: number[],
-    episodes: BatchedEpisodeRecord[],
-    _webWorkers: CartPoleWorldProxy[]
+    episodes: EpisodeBatchData[],
+    _webWorkers: WorldWorkerProxy[]
 }
 
 type AppActions = {
@@ -24,7 +24,7 @@ type AppActions = {
     setLearningRate: (newRate: number)=>void,
     setDiscountFactor: (newFactor: number)=>void,
     setIsTraining: (isTraining: boolean)=> void,
-    finishedRollout: (loss: number, worldWorker: CartPoleWorldProxy) => void
+    finishedRollout: (episode_batch: EpisodeBatchData[], loss: number, worldWorker: WorldWorkerProxy) => void
 }
 
 const initialState: AppState = {
@@ -40,7 +40,7 @@ const initialState: AppState = {
 }
 
 type SetFunctionType = (partial: (AppState & AppActions) | Partial<AppState & AppActions> | ((state: AppState & AppActions) => (AppState & AppActions) | Partial<AppState>), replace?: false) => void;
-function _finishedRollout(set: SetFunctionType, loss: number, worldWorker: CartPoleWorldProxy) {
+function _finishedRollout(set: SetFunctionType, episode_batch: EpisodeBatchData[], loss: number, worldWorker: WorldWorkerProxy) {
   console.log("_finishedRollout called!");
   // A worker thread finished a rollout
   set((state: AppState & AppActions) => {
@@ -51,7 +51,7 @@ function _finishedRollout(set: SetFunctionType, loss: number, worldWorker: CartP
     }
 
     // TODO: Trigger the worker to start another rollout?
-    return {lossHistory: [...state.lossHistory, loss]};
+    return {lossHistory: [...state.lossHistory, loss], episodes: state.episodes.concat(episode_batch)};
   });
   
 }
@@ -68,7 +68,7 @@ const useCartpoleAppState = create<AppState & AppActions>((set,get) => ({
       return initialState;
     });
 
-    const worldWorkerFactory = new CartPoleWorldWorkerFactory();
+    const worldWorkerFactory = new WorldWorkerFactory();
     worldWorkerFactory.init().then((worldWorker)=> {
       set({
         workerCount: get().workerCount+1,
@@ -105,7 +105,7 @@ const useCartpoleAppState = create<AppState & AppActions>((set,get) => ({
       // Add new workers
       for (let i = workerCount; i < newWorkerCount; i++) {
         
-        const worldWorkerFactory = new CartPoleWorldWorkerFactory();
+        const worldWorkerFactory = new WorldWorkerFactory();
         worldWorkerFactory.init().then((worldWorker) => {
           set((prev: AppState & AppActions) => {
             console.log("Worker spawned.");
@@ -130,10 +130,15 @@ const useCartpoleAppState = create<AppState & AppActions>((set,get) => ({
 }));
 
 // TODO: Add random/deterministic/epsilon greedy rollout options
-function _startWorkerRollout(worldWorker: CartPoleWorldProxy, state: AppState & AppActions) {
+function _startWorkerRollout(worldWorker: WorldWorkerProxy, state: AppState & AppActions) {
   console.log("Starting rollout for worker");
-  worldWorker._comlink?.random_rollout().then(() => {
-    state.finishedRollout(0, worldWorker);
+  worldWorker._comlink?.random_rollout().then((episode_batch) => {
+    if (episode_batch == null) {
+      console.error("Failed to episode batch from worker rollout! Terminating worker!");
+      worldWorker.terminate();
+      return;
+    }
+    state.finishedRollout(episode_batch, 0, worldWorker);
   });
 }
 
