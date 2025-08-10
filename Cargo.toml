@@ -28,7 +28,7 @@ wasm-timer = "0.2.5"
 wasm-logger = "0.2.0"
 serde-wasm-bindgen = "0.6.5"
 wasm-bindgen-futures = "0.4.50"
-burn = { version = "0.15.0", default-features = false, features = ["ndarray", "autodiff"] }
+burn = { version = "0.18.0", default-features = false, features = ["ndarray", "autodiff"] }
 #burn-wgpu = { version = "0.16.0", default-features = false }
 rand = "0.9.0"
 
