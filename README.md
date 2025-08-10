@@ -7,6 +7,23 @@ Uses WASM 128 bit SIMD extension to speed up execution.
 
 Uses multiple web-workers to parallelize episode roll outs.
 
+```bash
+# Install the WASM32 target for rust
+rustup target add wasm32-unknown-unknown
+
+# Install wasm-pack
+cargo install wasm-pack
+
+# Install wasm-bindgen CLI tool
+cargo install wasm-bindgen-cli
+
+# Install/enable yarn
+corepack enable
+
+# Setup SDKs for VSCode
+yarn dlx @yarnpkg/sdks vscode
+```
+
 ## Building
 Currently, I only have build instructions for my local development environment, which uses Yarn and Windows (PowerShell).
 

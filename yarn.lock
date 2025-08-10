@@ -3480,16 +3480,10 @@ __metadata:
 
 "burn-polecart-wasm-simd@file:./burn-polecart-wasm-simd::locator=web-polecart-rlhf%40workspace%3A.":
   version: 0.1.0
-  resolution: "burn-polecart-wasm-simd@file:./burn-polecart-wasm-simd#./burn-polecart-wasm-simd::hash=327bdb&locator=web-polecart-rlhf%40workspace%3A."
-  checksum: 10c0/c94786c1f71d4a966c4b6c189f1c844ff571c5584380e798cec63db2fd380821547529c5da585460ca4293463fb30222463d00ffc0c862908465a3dc59ab8972
+  resolution: "burn-polecart-wasm-simd@file:./burn-polecart-wasm-simd#./burn-polecart-wasm-simd::hash=056042&locator=web-polecart-rlhf%40workspace%3A."
+  checksum: 10c0/fa770be9450e612535b9dcbd7676e0a26afa35c1d301450273ceb48bcb9fdfb74d9043fd9e3a3b0aada975f01bfb1dc58ac2944802109498f6dc1799798cfc59
   languageName: node
   linkType: hard
-
-"burn-polecart-wasm@portal:/C:/Users/tyler/Programming/web-polecart-rlhf/burn-polecart-wasm::locator=web-polecart-rlhf%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "burn-polecart-wasm@portal:/C:/Users/tyler/Programming/web-polecart-rlhf/burn-polecart-wasm::locator=web-polecart-rlhf%40workspace%3A."
-  languageName: node
-  linkType: soft
 
 "cacache@npm:^19.0.0, cacache@npm:^19.0.1":
   version: 19.0.1
@@ -7947,7 +7941,6 @@ __metadata:
     "@types/react": "npm:^19.0.7"
     "@types/react-dom": "npm:^19.0.3"
     "@vitejs/plugin-react": "npm:^4.3.4"
-    burn-polecart-wasm: "file:./burn-polecart-wasm"
     burn-polecart-wasm-simd: "file:./burn-polecart-wasm-simd"
     comlink: "npm:^4.4.2"
     eslint: "npm:^9.18.0"

@@ -1,14 +1,12 @@
 import * as Comlink from 'comlink';
-import WorkerInterface, { EpisodeData } from './WorkerInterface';
+import WorkerInterface, { EpisodeData } from './worker/WorkerInterface';
 
 export class WorldWorkerProxy {
   _worker: Worker;
   _comlink: Comlink.Remote<WorkerInterface>;
-  _memory: WebAssembly.Memory;
 
-  constructor(worker: Worker, memory: WebAssembly.Memory, remote: Comlink.Remote<WorkerInterface>) {
+  constructor(worker: Worker, remote: Comlink.Remote<WorkerInterface>) {
     this._worker = worker;
-    this._memory = memory;
     this._comlink = remote;
   }
 

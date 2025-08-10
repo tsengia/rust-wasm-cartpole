@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
-import { WorldWorkerProxy } from './worker/WorldWorkerProxy';
-import WorldWorkerFactory from './worker/WorldWorkerFactory';
+import { WorldWorkerProxy } from './WorldWorkerProxy';
+import WorldWorkerFactory from './WorldWorkerFactory';
 import { EpisodeData } from './worker/WorkerInterface';
 
 type AppState = {
@@ -47,8 +47,6 @@ function _finishedRollout(set: SetFunctionType, episode_batch: EpisodeData[], lo
       // Not paused, order the worker to start on the next rollout
       _startWorkerRollout(worldWorker, state);
     }
-
-    // TODO: Trigger the worker to start another rollout?
     return {lossHistory: [...state.lossHistory, loss], episodes: state.episodes.concat(episode_batch)};
   });
   

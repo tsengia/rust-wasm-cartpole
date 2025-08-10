@@ -1,6 +1,7 @@
 import { Box, Button, Flex, Heading, Select, Text, TextField } from '@radix-ui/themes';
 import { PauseIcon, PlayIcon, SymbolIcon } from '@radix-ui/react-icons';
 import useCartpoleAppState, { AppActions, AppState } from '../AppState';
+import { useEffect, useRef } from 'react';
 
 
 function ControlsPanel() {
@@ -17,6 +18,16 @@ function ControlsPanel() {
   const pause = useCartpoleAppState((state: AppActions) => state.pause);
   const resume = useCartpoleAppState((state: AppActions) => state.resume);
   const reset = useCartpoleAppState((state: AppActions) => state.reset);
+
+  const firstWorkerSpawned = useRef<boolean>(false);
+
+  useEffect(()=> {
+    if (firstWorkerSpawned.current) {
+      return;
+    }
+    firstWorkerSpawned.current = true;
+    setWorkerCount(1);
+  }, [firstWorkerSpawned, setWorkerCount]);
 
   return (<Flex direction='column' gapY="3" >
     <Heading>Controls</Heading>
