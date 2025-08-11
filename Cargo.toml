@@ -35,7 +35,7 @@ rand = "0.9.0"
 # This feature must be enabled to use Tensor::random in WASM
 # See: https://docs.rs/getrandom/latest/getrandom/#webassembly-support
 getrandom = { version = "0.3", features = ["wasm_js"] }
-bincode = "=2.0.0-rc.3"
+bincode = "=2.0.1"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.34"
